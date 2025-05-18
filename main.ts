@@ -58,7 +58,7 @@ const base = (inner: string) => `<!doctype html>
   ${inner}
   <footer class="lunary">
     <a href="https://lunary.ai" target="_blank" rel="noopener noreferrer">
-      <img src="https://lunary.ai/icon-dark.svg" alt="Lunary logo" />
+      <img src="https://lunary.ai/logo-black.svg" alt="Lunary logo" />
       Made&nbsp;by&nbsp;Lunary
     </a>
   </footer>
