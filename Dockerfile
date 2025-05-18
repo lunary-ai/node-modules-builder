@@ -1,4 +1,4 @@
-FROM oven/bun:1.2:13
+FROM oven/bun:1.2:13-debian
 WORKDIR /app
 COPY . .
 EXPOSE 3000
