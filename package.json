@@ -1,0 +1,14 @@
+{
+  "version": "0.1",
+  "name": "build-and-downloadnode-modules",
+  "module": "main.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.7.10",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
