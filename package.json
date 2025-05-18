@@ -10,5 +10,8 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "next": "^15.3.2"
   }
 }
