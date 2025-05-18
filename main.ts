@@ -1,10 +1,8 @@
 /**
  * Bun Package Installer & Downloader (Link-based)
  * -------------------------------------------------
- * Generates a `node_modules.tar.gz` archive from a user-supplied
- * package.json (upload or paste). The success page gives a curl command
- * that downloads **node_modules.tar.gz**; the filename avoids clashing
- * with any existing `node_modules` directory.
+ * Adds a branded footer: “Made by Lunary” with the Lunary logo linking
+ * to https://lunary.ai.
  */
 
 import { serve } from "bun";
@@ -17,7 +15,7 @@ const TTL_MS = 60 * 60 * 1000; // 1 hour
 const SIZE_LIMIT = 1_000_000;  // 1 MB
 
 // -------------------------------------------------------------------------
-// In-memory store of temporary archives
+// In‑memory store of temporary archives
 // -------------------------------------------------------------------------
 const store = new Map<string, { path: string; expires: number }>();
 setInterval(() => {
@@ -40,7 +38,7 @@ const base = (inner: string) => `<!doctype html>
   <title>Bun node_modules builder</title>
   <style>
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#f9fafb}
+    body{margin:0;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;flex-direction:column;min-height:100vh;background:#f9fafb}
     form,main{background:#fff;padding:2rem;border-radius:1rem;box-shadow:0 8px 24px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:1rem;width:clamp(320px,90vw,560px)}
     h2{margin:0;font-size:1.25rem;text-align:center}
     label{font-weight:600}
@@ -51,9 +49,20 @@ const base = (inner: string) => `<!doctype html>
     .spinner{border:2px solid transparent;border-top:2px solid #fff;border-radius:50%;width:16px;height:16px;animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     code{background:#f3f4f6;padding:.25rem .5rem;border-radius:.25rem;font-size:.875rem}
+    footer.lunary{margin-top:2rem;font-size:.875rem;color:#6b7280;text-align:center}
+    footer.lunary a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:.25rem}
+    footer.lunary img{height:20px;filter:grayscale(1);}
   </style>
 </head>
-<body>${inner}</body>
+<body>
+  ${inner}
+  <footer class="lunary">
+    <a href="https://lunary.ai" target="_blank" rel="noopener noreferrer">
+      <img src="https://lunary.ai/icon-dark.svg" alt="Lunary logo" />
+      Made&nbsp;by&nbsp;Lunary
+    </a>
+  </footer>
+</body>
 </html>`;
 
 const formPage = () => base(`<form method="POST" enctype="multipart/form-data" action="/upload">
@@ -75,7 +84,7 @@ const formPage = () => base(`<form method="POST" enctype="multipart/form-data" a
 const successPage = (link: string) => base(`<main>
   <h2>Your archive is ready!</h2>
   <p>Download with:</p>
-  <p><code>curl -OJ ${link} | tar xvf </code></p>
+  <p><code>curl -OJ ${link}</code></p>
   <input class="copy" value="${link}" readonly onclick="this.select()" />
   <p style="font-size:.875rem;color:#6b7280">Saves as <code>node_modules.tar.gz</code>; link expires in 1&nbsp;hour.</p>
   <a href="/">⇠ Build another</a>
@@ -87,12 +96,10 @@ const successPage = (link: string) => base(`<main>
 const server = serve({ port: PORT, async fetch(req) {
   const { pathname, origin } = new URL(req.url);
 
-  // Root form -------------------------------------------------------------
   if (req.method === "GET" && pathname === "/") {
     return new Response(formPage(), { headers: { "Content-Type": "text/html;charset=utf-8" } });
   }
 
-  // Build handler ---------------------------------------------------------
   if (req.method === "POST" && pathname === "/upload") {
     try {
       const fd = await req.formData();
@@ -111,7 +118,6 @@ const server = serve({ port: PORT, async fetch(req) {
 
       try { JSON.parse(pkg); } catch { return new Response("Invalid JSON.", { status: 400 }); }
 
-      // temp workspace ----------------------------------------------------
       const tmp = (await Bun.$`mktemp -d`.text()).trim();
       await Bun.write(`${tmp}/package.json`, pkg);
 
@@ -128,7 +134,6 @@ const server = serve({ port: PORT, async fetch(req) {
         return new Response(`Archive failed:\n${err}`, { status: 500 });
       }
 
-      // register & respond ------------------------------------------------
       const id = crypto.randomUUID();
       store.set(id, { path: archivePath, expires: Date.now() + TTL_MS });
       return new Response(successPage(`${origin}/download/${id}`), { headers: { "Content-Type": "text/html;charset=utf-8" } });
@@ -138,7 +143,6 @@ const server = serve({ port: PORT, async fetch(req) {
     }
   }
 
-  // Download --------------------------------------------------------------
   if (req.method === "GET" && pathname.startsWith("/download/")) {
     const id = pathname.slice("/download/".length);
     const entry = store.get(id);

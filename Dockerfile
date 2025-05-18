@@ -1,4 +1,4 @@
-FROM oven/bun:1.2:123
+FROM oven/bun:1.2:13
 WORKDIR /app
 COPY . .
 EXPOSE 3000
